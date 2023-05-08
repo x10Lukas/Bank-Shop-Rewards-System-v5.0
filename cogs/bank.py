@@ -158,6 +158,24 @@ class Bank(commands.Cog):
         embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast {member.mention} {amount}€ überwiesen.", color=color)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
+    
+    @app_commands.command(description="Einem Member Geld überweisen")
+    async def addmoney(self, ctx, member:discord.Member, amount: int):
+        # Prüfen, ob der Empfänger ein Konto hat
+        c.execute("SELECT * FROM accounts WHERE user_id=?", (user.id,))
+        recipient_account = c.fetchone()
+        if recipient_account is None:
+            embed = discord.Embed(title=f"{interactions.guild.name}", description="{member} besitzt leider kein Konto bei der Bank.", color=color)
+            await ctx.response.send_message(embed=embed, ephemeral=True)
+            return
+
+        # Betrag vom Absenderkonto abziehen und zum Empfängerkonto hinzufügen
+        recipient_balance = recipient_account[2] + amount
+        c.execute("UPDATE accounts SET cash_balance=? WHERE user_id=?", (recipient_balance, user.id))
+        conn.commit()
+
+        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"**{user.mention} hat nun `{amount}`€ erhalten.**", color=color)
+        await ctx.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Bank(bot))
