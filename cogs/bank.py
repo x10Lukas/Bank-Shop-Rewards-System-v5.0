@@ -12,8 +12,8 @@ c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS accounts (user_id text, bank_balance INTEGER, cash_balance INTEGER, last_beggars datetime)''')
 
 class Bank(commands.Cog):
-    def __init__(self, app_commands):
-        self.app_commands = app_commands
+    def __init__(self, bot):
+        self.bot = bot
 
     @app_commands.command(description="Erstelle ein Account bei der Bank")
     async def create_account(self, interactions: discord.Interaction):
@@ -76,7 +76,7 @@ class Bank(commands.Cog):
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(description="Geld auf Bankkonto einzahlen")
-    async def deposit(self, interactions: discord.Intents, amount: int):
+    async def deposit(self, interactions: discord.Interaction, amount: int):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         account = c.fetchone()
         if account is None:
@@ -101,7 +101,7 @@ class Bank(commands.Cog):
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(description="Geld vom bankkonto abheben")
-    async def withdraw(self, interactions: discord.Intents, amount: int):
+    async def withdraw(self, interactions: discord.Interaction, amount: int):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         account = c.fetchone()
         if account is None:
@@ -126,7 +126,7 @@ class Bank(commands.Cog):
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(description="Einem anderen Spieler Geld überweisen")
-    async def transfer(self, interactions: discord.Intents, member: discord.Member, amount: int):
+    async def transfer(self, interactions: discord.Interaction, member: discord.Member, amount: int):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         sender_account = c.fetchone()
         if sender_account is None:
@@ -158,15 +158,16 @@ class Bank(commands.Cog):
         embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast {member.mention} {amount}€ überwiesen.", color=color)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
-    
+
     @app_commands.command(description="Einem Member Geld überweisen")
-    async def addmoney(self, ctx, member:discord.Member, amount: int):
+    async def addmoney(self, interactions: discord.Interaction, user:discord.Member, amount: int):
         # Prüfen, ob der Empfänger ein Konto hat
         c.execute("SELECT * FROM accounts WHERE user_id=?", (user.id,))
         recipient_account = c.fetchone()
         if recipient_account is None:
-            embed = discord.Embed(title=f"{interactions.guild.name}", description="{member} besitzt leider kein Konto bei der Bank.", color=color)
-            await ctx.response.send_message(embed=embed, ephemeral=True)
+            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"{user} besitzt leider kein Konto bei der Bank.", color=color)
+            embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            await interactions.response.send_message(embed=embed, ephemeral=True)
             return
 
         # Betrag vom Absenderkonto abziehen und zum Empfängerkonto hinzufügen
@@ -175,7 +176,8 @@ class Bank(commands.Cog):
         conn.commit()
 
         embed = discord.Embed(title=f"{interactions.guild.name}", description=f"**{user.mention} hat nun `{amount}`€ erhalten.**", color=color)
-        await ctx.response.send_message(embed=embed, ephemeral=True)
+        embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        await interactions.response.send_message(embed=embed, ephemeral=True)    
 
 async def setup(bot):
     await bot.add_cog(Bank(bot))
