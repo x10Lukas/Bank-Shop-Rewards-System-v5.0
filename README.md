@@ -6,7 +6,6 @@ Hier findest du den Source Code zu meinem Bank System. Für dieses Ssystem benut
 - Die Codes nicht als eure Ausgeben.
 - LISENZ beachten.
 - Es muss [discord.py 2.0](https://pypi.org/project/discord.py/) installiert sein um die Bank zu benutzen
-- Vorschläge oder Verbesserungen in den Chat schreiben
 
 ## Setup
 1. Erstelle einen Bot im [Discord Developer Portal](https://discord.com/developers/applications/)
