@@ -16,7 +16,8 @@ Hier findest du den Source Code zu meinem Bank System. Für dieses Ssystem benut
 > `balance` - sein Bankkonto ansehen                         
 > `deposit {amount}` - Bargeld auf Bankkonto einzahlen                          
 > `withdraw {amount}` - Geld von Bankkonto abheben                              
-> `transfer {member} {amount}` - Geld von dir einen anderen geben        
+> `transfer {member} {amount}` - Geld von dir einen anderen geben   
+> `addmoney {member} {amount}` - Geld einem Member geben
 
 ## Feedback
 - Bei fragen einfach mich in discord anschreiben Lukasӝ#9627
