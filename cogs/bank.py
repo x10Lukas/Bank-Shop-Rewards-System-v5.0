@@ -271,7 +271,7 @@ class Bank(commands.Cog):
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
-        channel = self.bot.get_channel(1084488342655205466)
+        channel = self.bot.get_channel(<YOUR CHANNELD ID>) # Log Channel ID
         embed = discord.Embed(description=f"Es wurde etwas im Shop gekauft.", color=color)
         embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
