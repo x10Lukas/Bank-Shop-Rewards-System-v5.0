@@ -48,7 +48,7 @@ class Bank(commands.Cog):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         account = c.fetchone()
         if account is None:
-            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst ein Konto mit dem Command `/create_account`.", color=color)
+            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst eins mit dem Command `/create_account`.", color=color)
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
@@ -64,7 +64,7 @@ class Bank(commands.Cog):
         cash_balance = account[2] + amount
         c.execute("UPDATE accounts SET cash_balance=?, last_beggars=? WHERE user_id=?", (cash_balance, datetime.now(), interactions.user.id))
         conn.commit()
-        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast `{amount} Coins` in Bar erhalten.", color=color)
+        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast `{amount} Coins` erhalten.", color=color)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
@@ -73,17 +73,20 @@ class Bank(commands.Cog):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         account = c.fetchone()
         if account is None:
-            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst ein Konto mit dem Command `/create_account`.", color=color)
+            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst eins mit dem Command `/create_account`.", color=color)
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
         
         bank_balance = account[1]
         cash_balance = account[2]
-        embed = discord.Embed(title=f"{interactions.user.name} Balance", color=color)
+        last_beggars = account[3]
+        embed = discord.Embed(title=f"{interactions.user.name} - Balance", color=color)
+        embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
-        embed.add_field(name="Bank", value=f"{bank_balance} Coins")
-        embed.add_field(name="Cash", value=f"{cash_balance} Coins")
+        embed.add_field(name="🏦 Bank", value=f"```{bank_balance}```")
+        embed.add_field(name="💰 Cash", value=f"```{cash_balance}```")
+        embed.add_field(name="⌚️ Last Begged", value=f"```{last_beggars}```", inline=False)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
@@ -92,7 +95,7 @@ class Bank(commands.Cog):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         account = c.fetchone()
         if account is None:
-            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst ein Konto mit dem Command `/create_account`.", color=color)
+            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst eins mit dem Command `/create_account`.", color=color)
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
@@ -117,7 +120,7 @@ class Bank(commands.Cog):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         account = c.fetchone()
         if account is None:
-            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst ein Konto mit dem Command `/create_account`.", color=color)
+            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst eins mit dem Command `/create_account`.", color=color)
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
@@ -142,7 +145,7 @@ class Bank(commands.Cog):
         c.execute("SELECT * FROM accounts WHERE user_id=?", (interactions.user.id,))
         sender_account = c.fetchone()
         if sender_account is None:
-            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst ein Konto mit dem Command `/create_account`.", color=color)
+            embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast noch kein Konto. Bitte erstelle zuerst eins mit dem Command `/create_account`.", color=color)
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
@@ -194,11 +197,11 @@ class Bank(commands.Cog):
         c.execute("SELECT name, price FROM items")
         items = c.fetchall()
 
-        embed = discord.Embed(title="Shop", color=color)
+        embed = discord.Embed(title="Supermarket", color=color)
         embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_thumbnail(url=f"{interactions.guild.icon}")
         for item in items:
-            embed.add_field(name=item[0], value=f"**Preis:** `{item[1]} Coins`", inline=False)
+            embed.add_field(name=item[0], value=f"```{item[1]} Coins```", inline=True)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed)
 
@@ -206,21 +209,23 @@ class Bank(commands.Cog):
     async def add_item(self, interactions: discord.Interaction, item_name: str, item_price: int):
         c.execute("INSERT INTO items (name, price) VALUES (?, ?)", (item_name, item_price))
         conn.commit()
-        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"{item_name} wurde zum Shop hinzugefügt.", color=color)
+        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast etwas zum Shop hinzugefügt.", color=color)
+        embed.add_field(name="Ware", value=f"```{item_name}```", inline=True)
+        embed.add_field(name="Price", value=f"```{item_price}```", inline=True)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
-        member = interactions.guild.get_member(interactions.user.id)
 
     @app_commands.command(description="Entferne ein Item")
     async def remove_item(self, interactions: discord.Interaction, item_name: str):
         c.execute("DELETE FROM items WHERE name=?", (item_name,))
         conn.commit()
-        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"{item_name} wurde aus dem Shop entfernt.", color=color)
+        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast etwas aus dem Shop entfernt.", color=color)
+        embed.add_field(name="Ware", value=f"```{item_name}```", inline=True)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
     @app_commands.command(description="Kauf ein Item aus dem Shop")
-    async def buy(self, interactions: discord.Interaction, item_name: str):
+    async def buy(self, interactions: discord.Interaction, item_name: str, quantity: int):
         c.execute("SELECT price FROM items WHERE name=?", (item_name,))
         item_price = c.fetchone()
 
@@ -235,41 +240,48 @@ class Bank(commands.Cog):
 
         if user_balance is None:
             embed = discord.Embed(title=f"{interactions.guild.name}", description="Du hast kein Bank-Konto. Bitte erstelle eines mit `/create_account`.", color=color)
+            embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
 
         bank_balance = user_balance[0]
-        if bank_balance < item_price[0]:
+        if bank_balance < item_price[0] * quantity:
             embed = discord.Embed(title=f"{interactions.guild.name}", description="Du hast nicht genug Geld.", color=color)
             embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
             await interactions.response.send_message(embed=embed, ephemeral=True)
             return
 
-        new_bank_balance = bank_balance - item_price[0]
+        new_bank_balance = bank_balance - item_price[0] * quantity
         c.execute("UPDATE accounts SET bank_balance=? WHERE user_id=?", (new_bank_balance, interactions.user.id))
 
-        c.execute("INSERT INTO inventory (user_id, item_name) VALUES (?, ?)", (interactions.user.id, item_name))
+        c.execute("SELECT quantity FROM inventory WHERE user_id=? AND item_name=?", (interactions.user.id, item_name))
+        inventory_item = c.fetchone()
+
+        if inventory_item is None:
+            c.execute("INSERT INTO inventory (user_id, item_name, quantity) VALUES (?, ?, ?)", (interactions.user.id, item_name, quantity))
+        else:
+            new_quantity = inventory_item[0] + quantity
+            c.execute("UPDATE inventory SET quantity=? WHERE user_id=? AND item_name=?", (new_quantity, interactions.user.id, item_name))
 
         conn.commit()
 
-        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Du hast dir `{item_name}` gekauft.\nDein neuer Bank-Kontostand beträgt `{new_bank_balance}` Coins.", color=color)
+        embed = discord.Embed(description=f"Du hast x{quantity} `{item_name}` gekauft.", color=color)
+        embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
-        member = interactions.guild.get_member(interactions.user.id)
-        role = discord.utils.get(interactions.guild.roles, name="YourRoleNameHere")
-        await member.add_roles(role)
 
         channel = self.bot.get_channel(1084488342655205466)
-        embed = discord.Embed(title=f"{interactions.user}", description="Ein Kunde hat etwas im Shop gekauft", color=color)
+        embed = discord.Embed(description=f"Es wurde etwas im Shop gekauft.", color=color)
+        embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
-        embed.add_field(name="Kunde", value=f"{interactions.user.mention}", inline=True)
-        embed.add_field(name="Ware", value=f"`{item_name}`", inline=True)
+        embed.add_field(name="Kunde", value=f"{interactions.user.mention}", inline=False)
+        embed.add_field(name="Ware", value=f"`{item_name} x{quantity}`", inline=False)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await channel.send(embed=embed)
 
     @app_commands.command(description="Item zurückgeben")
-    async def rebuy(self, interactions: discord.Interaction, item_name: str):
+    async def rebuy(self, interactions: discord.Interaction, item_name: str, quantity: int):
         c.execute("SELECT price FROM items WHERE name=?", (item_name,))
         item_price = c.fetchone()
 
@@ -289,18 +301,48 @@ class Bank(commands.Cog):
             return
 
         bank_balance = user_balance[0]
-        new_bank_balance = bank_balance + item_price[0]
+        new_bank_balance = bank_balance + item_price[0] * quantity
         c.execute("UPDATE accounts SET bank_balance=? WHERE user_id=?", (new_bank_balance, interactions.user.id))
 
-        c.execute("DELETE FROM inventory WHERE user_id=? AND item_name=?", (interactions.user.id, item_name))
+        c.execute("SELECT quantity FROM inventory WHERE user_id=? AND item_name=?", (interactions.user.id, item_name))
+        inventory_item = c.fetchone()
+
+        if inventory_item is None:
+            c.execute("INSERT INTO inventory (user_id, item_name, quantity) VALUES (?, ?, ?)", (interactions.user.id, item_name, -quantity))
+        else:
+            new_quantity = inventory_item[0] - quantity
+            if new_quantity == 0:
+                c.execute("DELETE FROM inventory WHERE user_id=? AND item_name=?", (interactions.user.id, item_name))
+            else:
+                c.execute("UPDATE inventory SET quantity=? WHERE user_id=? AND item_name=?", (new_quantity, interactions.user.id, item_name))
+
         conn.commit()
 
-        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"{item_name} wurde zurückerstattet.\nDein neuer Bank-Kontostand beträgt `{new_bank_balance}` Coins.", color=color)
+        embed = discord.Embed(title=f"{interactions.user.name} - Refunded", description=f"Du hast {quantity} {item_name}(s) zurückerstattet.", color=color)
+        embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
-        member = interactions.guild.get_member(interactions.user.id)
-        role = discord.utils.get(interactions.guild.roles, name="YourRoleNameHere")
-        await member.remove_roles(role)
+
+
+    @app_commands.command(description="Zeigt dir dein Inventar an")
+    async def inventory(self, interactions: discord.Interaction):
+        c.execute("SELECT * FROM inventory WHERE user_id=?", (interactions.user.id,))
+        items = c.fetchall()
+        if not items:
+            embed = discord.Embed(title=f"{interactions.user.name} - Inventory", description="Your inventory is empty.", color=color)
+            embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            await interactions.response.send_message(embed=embed, ephemeral=True)
+            return
+        
+        embed = discord.Embed(title=f"{interactions.user.name} - Inventory", color=color)
+        embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
+        for item in items:
+            embed.add_field(name=item[1], value=f"`x{item[2]}`", inline=False)
+        embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        await interactions.response.send_message(embed=embed, ephemeral=True)  
 
 async def setup(bot):
     await bot.add_cog(Bank(bot))
