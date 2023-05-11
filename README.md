@@ -17,7 +17,8 @@ Hier findest du den Source Code zu meinem Bank + Shop System. Für dieses Ssyste
 > `/deposit {amount}` - Bargeld auf Bankkonto einzahlen                          
 > `/withdraw {amount}` - Geld von Bankkonto abheben                              
 > `/transfer {member} {amount}` - Geld von dir einen anderen geben    
-> `/addmoney {member} {amount}` - Geld einem Member geben
+> `/addmoney {member} {amount}` - Geld einem Member geben     
+> `/leaderboard` - Zeigt das Leaderboard an
 
 ## Shop-Commands
 > `/shop` - Zeigt den Shop an                  
