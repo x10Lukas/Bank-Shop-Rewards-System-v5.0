@@ -343,6 +343,28 @@ class Bank(commands.Cog):
             embed.add_field(name=item[1], value=f"`x{item[2]}`", inline=False)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)  
+        
+    @app_commands.command(description="Zeigt das Leaderboard an")
+    async def leaderboard(self, interactions: discord.Interaction):
+        c.execute("SELECT user_id, bank_balance FROM accounts ORDER BY bank_balance DESC")
+        rows = c.fetchall()
+
+        embed = discord.Embed(title="🏆 Leaderboard",color=color)
+        embed.set_thumbnail(url=f"{interactions.guild.icon}")
+        leaderboard = "You see the current Bank Account Ranking.\n\n"
+
+        for i, row in enumerate(rows):
+            user_id = row[0]
+            bank_balance = row[1]
+            member = interactions.guild.get_member(int(user_id))
+            if member:
+                leaderboard += f"**{i+1}.** {member.mention}・`{bank_balance} Coins`\n"
+            else:
+                leaderboard += f"{i+1}. User nicht gefunden: `{bank_balance} Coins`\n"
+
+        embed.description = leaderboard
+        embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        await interactions.response.send_message(embed=embed, ephemeral=True)          
 
 async def setup(bot):
     await bot.add_cog(Bank(bot))
