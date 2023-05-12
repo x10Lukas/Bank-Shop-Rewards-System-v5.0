@@ -30,5 +30,10 @@ Hier findest du den Source Code zu meinem Bank + Shop System. Für dieses Ssyste
 ## Inventar-Commands
 > `/inventar` - Inventar ansehen
 
+## Rewards-Commands
+> `/add_role` - Fügt eine Rolle mit zugehörigem Coins hinzu    
+> `/remove_role` - Entfernt eine Rolle aus der Datenbank    
+> `/rewards` - Nehlohnung bekommen 
+
 ## Feedback
 - Bei fragen einfach mich in discord anschreiben Lukasӝ#9627
