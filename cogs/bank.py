@@ -12,6 +12,8 @@ c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS accounts (user_id text, bank_balance INTEGER, cash_balance INTEGER, last_beggars datetime)''')
 c.execute('''CREATE TABLE IF NOT EXISTS items (name text, price INTEGER)''')
 c.execute('''CREATE TABLE IF NOT EXISTS inventory (user_id text, item_name text, quantity INTEGER)''')
+c.execute('''CREATE TABLE IF NOT EXISTS roles (role_name TEXT, coins INTEGER)''')
+c.execute('''CREATE TABLE IF NOT EXISTS rewards (user_id INTEGER, role_name TEXT, coins INTEGER, PRIMARY KEY (user_id, role_name))''')
 
 class Bank(commands.Cog):
     def __init__(self, bot):
@@ -85,7 +87,7 @@ class Bank(commands.Cog):
         embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
         embed.add_field(name="🏦 Bank", value=f"```{bank_balance}```")
-        embed.add_field(name="💰 Cash", value=f"```{cash_balance}```")
+        embed.add_field(name="<:wallet:1105896492591489094> Cash", value=f"```{cash_balance}```")
         embed.add_field(name="⌚️ Last Begged", value=f"```{last_beggars}```", inline=False)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
@@ -197,8 +199,7 @@ class Bank(commands.Cog):
         c.execute("SELECT name, price FROM items")
         items = c.fetchall()
 
-        embed = discord.Embed(title="Supermarket", color=color)
-        embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        embed = discord.Embed(title="🏪 Supermarket", color=color)
         embed.set_thumbnail(url=f"{interactions.guild.icon}")
         for item in items:
             embed.add_field(name=item[0], value=f"```{item[1]} Coins```", inline=True)
@@ -271,12 +272,12 @@ class Bank(commands.Cog):
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
-        channel = self.bot.get_channel(<YOUR CHANNELD ID>) # Log Channel ID
+        channel = self.bot.get_channel(<YOUR CHANNEL ID>)
         embed = discord.Embed(description=f"Es wurde etwas im Shop gekauft.", color=color)
         embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
-        embed.add_field(name="Kunde", value=f"{interactions.user.mention}", inline=False)
-        embed.add_field(name="Ware", value=f"`{item_name} x{quantity}`", inline=False)
+        embed.add_field(name="Kunde", value=f"{interactions.user.mention}", inline=True)
+        embed.add_field(name="Ware", value=f"`{item_name} x{quantity}`", inline=True)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await channel.send(embed=embed)
 
@@ -324,7 +325,6 @@ class Bank(commands.Cog):
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
         await interactions.response.send_message(embed=embed, ephemeral=True)
 
-
     @app_commands.command(description="Zeigt dir dein Inventar an")
     async def inventory(self, interactions: discord.Interaction):
         c.execute("SELECT * FROM inventory WHERE user_id=?", (interactions.user.id,))
@@ -342,8 +342,8 @@ class Bank(commands.Cog):
         for item in items:
             embed.add_field(name=item[1], value=f"`x{item[2]}`", inline=False)
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
-        await interactions.response.send_message(embed=embed, ephemeral=True)  
-        
+        await interactions.response.send_message(embed=embed, ephemeral=True) 
+
     @app_commands.command(description="Zeigt das Leaderboard an")
     async def leaderboard(self, interactions: discord.Interaction):
         c.execute("SELECT user_id, bank_balance FROM accounts ORDER BY bank_balance DESC")
@@ -360,11 +360,68 @@ class Bank(commands.Cog):
             if member:
                 leaderboard += f"**{i+1}.** {member.mention}・`{bank_balance} Coins`\n"
             else:
-                leaderboard += f"{i+1}. User nicht gefunden: `{bank_balance} Coins`\n"
+                leaderboard += f"**{i+1}.** User nicht gefunden: `{bank_balance} Coins`\n"
 
         embed.description = leaderboard
         embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
-        await interactions.response.send_message(embed=embed, ephemeral=True)          
+        await interactions.response.send_message(embed=embed, ephemeral=True)    
+
+    @app_commands.command(description="Fügt eine Rolle mit zugehörigen Coins hinzu")
+    async def add_role(self, interactions: discord.Interaction, role: discord.Role, coins: int):
+        c.execute("INSERT INTO roles (role_name, coins) VALUES (?, ?)", (role.name, coins))
+        conn.commit()
+        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Die Rolle `{role.name}` wurde mit `{coins} Coins` hinzugefügt.", color=color)
+        embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        await interactions.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command(description="Entfernt eine Rolle aus der Datenbank")
+    async def remove_role(self, interactions: discord.Interaction, role: discord.Role):
+        c.execute("DELETE FROM roles WHERE role_name=?", (role.name,))
+        conn.commit()
+        embed = discord.Embed(title=f"{interactions.guild.name}", description=f"Die Rolle `{role.name}` wurde entfernt.", color=color)
+        embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+        await interactions.response.send_message(embed=embed, ephemeral=True)
+
+    @app_commands.command(description="Coins von einer Rolle erhalten")
+    async def rewards(self, interactions: discord.Interaction):
+        user_roles = [role.name for role in interactions.user.roles]
+
+        c.execute("SELECT role_name, coins FROM roles")
+        roles = c.fetchall()
+        role_coins = dict(roles)
+
+        total_coins = 0
+        for role_name in user_roles:
+            if role_name in role_coins:
+                coins = role_coins[role_name]
+                c.execute("SELECT * FROM rewards WHERE user_id = ? AND role_name = ?", (interactions.user.id, role_name))
+                if c.fetchone():
+                    embed = discord.Embed(title=f"{interactions.guild.name}", description="Du hast bereits die Belohnungen für deine Rolle(n) erhalten.", color=color)
+                    embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+                    return await interactions.response.send_message(embed=embed, ephemeral=True)
+                
+                c.execute("INSERT INTO rewards (user_id, role_name, coins) VALUES (?, ?, ?)", (interactions.user.id, role_name, coins))
+                total_coins += coins
+
+        if total_coins > 0:
+            c.execute("UPDATE accounts SET bank_balance = bank_balance + ? WHERE user_id = ?", (total_coins, interactions.user.id))
+            conn.commit()
+
+            embed = discord.Embed(title=f"{interactions.user}", description=f"Du hast `{total_coins} Coins` für deine Rolle(n) erhalten.", color=color)
+            embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            await interactions.response.send_message(embed=embed, ephemeral=True)
+            channel = self.bot.get_channel(<YOUR CHANNEL ID>)
+            embed = discord.Embed(description="Ein User hat seine Rewards eingelöst.", color=color)
+            embed.set_author(name=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            embed.set_thumbnail(url=f"{interactions.user.display_avatar}")
+            embed.add_field(name="User", value=f"{interactions.user.mention}", inline=True)
+            embed.add_field(name="Rewards", value=f"`{total_coins}`", inline=True)
+            embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            await channel.send(embed=embed)
+        else:
+            embed = discord.Embed(title=f"{interactions.guild.name}", description="Du besitzt keine Rolle(n), für die Coins vergeben werden können.", color=color)
+            embed.set_footer(text=f"{interactions.guild.name}", icon_url=f"{interactions.guild.icon}")
+            await interactions.response.send_message(embed=embed, ephemeral=True)
 
 async def setup(bot):
     await bot.add_cog(Bank(bot))
