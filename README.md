@@ -1,6 +1,6 @@
 # Bank + Shop + Rewards System v5.0
 
-Hier findest du den Source Code zu meinem Bank + Shop System. Für dieses Ssystem benutze ich [Python](https://www.python.org/downloads/release/python-3910/). Das ist eine Python-Bibliothek, die auf [discord.py](https://github.com/Rapptz/discord.py) basiert und mit der wir auf die Discord API zugreifen.
+Hier findest du den Source Code zu meinem Bank + Shop System. Für dieses System benutze ich [Python](https://www.python.org/downloads/release/python-3910/). Das ist eine Python-Bibliothek, die auf [discord.py](https://github.com/Rapptz/discord.py) basiert und mit der wir auf die Discord API zugreifen.
 
 ## Info
 - Den `Code` bitte nicht als eure Ausgeben.
