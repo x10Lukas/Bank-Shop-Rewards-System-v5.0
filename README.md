@@ -37,4 +37,4 @@ Das ist eine Python-Bibliothek, die auf [discord.py](https://github.com/Rapptz/d
 > `/rewards` - Behlohnung für eine oder mehrere Rollen bekommen 
 
 ## Feedback
-- Bei fragen einfach mich in discord anschreiben Lukasӝ#9627
+- Bei fragen einfach mich in discord anschreiben Lukas9627
